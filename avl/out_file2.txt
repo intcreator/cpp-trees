@@ -1,0 +1,46 @@
+Insert 1 False
+Insert 2 False
+Insert 3 False
+PrintBST
+BST is empty
+
+Insert 4 False
+Insert 5 False
+Insert 6 False
+Insert 10 False
+PrintBST
+BST is empty
+
+Insert 8 False
+Insert 7 False
+Insert 9 False
+PrintBST
+BST is empty
+
+Remove 11 False
+Remove 10 False
+Remove 9 False
+Remove 6 False
+PrintBST
+BST is empty
+
+Remove 8 False
+Remove 7 False
+PrintBST
+BST is empty
+
+Remove 5 False
+Remove 4 False
+Remove 3 False
+Remove 2 False
+PrintBST
+BST is empty
+
+Remove 1 False
+PrintBST
+BST is empty
+
+Clear
+PrintBST
+BST is empty
+

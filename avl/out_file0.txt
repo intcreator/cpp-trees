@@ -1,0 +1,31 @@
+PrintBST
+BST is empty
+
+Insert 0 False
+PrintBST
+BST is empty
+
+Insert 1 False
+PrintBST
+BST is empty
+
+Insert 2 False
+PrintBST
+BST is empty
+
+Insert 4 False
+PrintBST
+BST is empty
+
+Remove 0 False
+PrintBST
+BST is empty
+
+Insert 3 False
+PrintBST
+BST is empty
+
+Remove 1 False
+PrintBST
+BST is empty
+

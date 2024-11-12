@@ -1,0 +1,15 @@
+PrintBST
+Insert 0
+PrintBST
+Insert 1
+PrintBST
+Insert 2
+PrintBST
+Insert 4
+PrintBST
+Remove 0
+PrintBST
+Insert 3
+PrintBST
+Remove 1
+PrintBST

@@ -1,0 +1,14 @@
+Insert 1
+Insert 2
+Insert 3
+Insert 1
+PrintBST
+Insert 4
+Insert 5
+Insert 6
+Insert 10
+PrintBST
+Insert 8
+Insert 7
+Insert 9
+PrintBST
