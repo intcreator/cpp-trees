@@ -6,9 +6,13 @@
 #include "AVL.h"
 #include "Node.h"
 
-const int NUM_FILES = 6; // the total number of files to be read from
+using std::cout;
+using std::endl;
 
-const std::string fileArray[NUM_FILES] = {"file0.txt", "file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt"}; // the string array containing the file names
+const int NUM_FILES = 1; // the total number of files to be read from
+
+// the string array containing the file names
+std::string fileArray[NUM_FILES];
 
 // This will take a string temp and an AVL object and will execute an instruction from the string
 // no return, but writes the results of the instruction into the ofs
@@ -28,6 +32,13 @@ int main()
 	std::ofstream ofs;		 // create the output stream to write to an output file
 	std::string temp;		 // used to store the current instruction
 	AVL<int> *avlptr = NULL; // the AVL
+
+	for (int i = 0; i < NUM_FILES; i++)
+	{
+		std::ostringstream fileNameStream;
+		fileNameStream << "file" << i << ".txt";
+		fileArray[i] = fileNameStream.str();
+	}
 
 	for (int i = 0; i < NUM_FILES; i++)
 	{

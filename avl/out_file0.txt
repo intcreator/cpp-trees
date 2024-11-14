@@ -1,31 +1,48 @@
 PrintBST
 BST is empty
 
-Insert 0 False
+Insert 0 True
 PrintBST
-BST is empty
+0:  0 
 
-Insert 1 False
+Insert 1 True
 PrintBST
-BST is empty
+0:  0 
+1:  1 
 
-Insert 2 False
+Insert 2 True
 PrintBST
-BST is empty
+0:  0 
+1:  1 
+2:  2 
 
-Insert 4 False
+Insert 4 True
 PrintBST
-BST is empty
+0:  0 
+1:  1 
+2:  2 
+3:  4 
 
 Remove 0 False
 PrintBST
-BST is empty
+0:  0 
+1:  1 
+2:  2 
+3:  4 
 
-Insert 3 False
+Insert 3 True
 PrintBST
-BST is empty
+0:  0 
+1:  1 
+2:  2 
+3:  4 
+4:  3 
 
 Remove 1 False
 PrintBST
-BST is empty
+0:  0 
+1:  1 
+2:  2 
+3:  4 
+4:  3 
 
