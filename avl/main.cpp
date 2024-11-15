@@ -9,7 +9,7 @@
 using std::cout;
 using std::endl;
 
-const int NUM_FILES = 1; // the total number of files to be read from
+const int NUM_FILES = 2; // the total number of files to be read from
 
 // the string array containing the file names
 std::string fileArray[NUM_FILES];
@@ -48,14 +48,14 @@ int main()
 
 		if (!ifs.is_open())
 		{ // if the file did not open, there was no such file
-			std::cout << "File " << i + 1 << " could not open, please check your lab setup" << std::endl;
+			std::cout << "File " << i << " could not open, please check your lab setup" << std::endl;
 		}
 		else
 		{
-			std::cout << "Reading in_file" << i + 1 << ".txt..." << std::endl;
+			std::cout << "Reading in_file" << i << ".txt..." << std::endl;
 		}
 
-		std::cout << "Beginning out_file" << i + 1 << ".txt write" << std::endl;
+		std::cout << "Beginning out_file" << i << ".txt write" << std::endl;
 		while (ta::getline(ifs, temp))
 		{										  // while there are more instructions to get,
 			parse_instruction(temp, ofs, avlptr); // parse the instructions using the AVL

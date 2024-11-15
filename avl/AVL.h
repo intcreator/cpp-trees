@@ -1,6 +1,11 @@
 #pragma once
 
+#include <iostream>
+#include <string>
 #include "Node.h"
+
+using std::cout;
+using std::endl;
 
 template <class T>
 class AVL
@@ -45,6 +50,158 @@ private:
         return nullptr;
     }
 
+    Node<T> *findInOrderSuccessorParent(Node<T> *node)
+    {
+        // if right child is empty, right child is in order successor and node is parent
+        if (node->right->left == nullptr)
+        {
+            return node;
+        }
+        // otherwise search
+        Node<T> *candidateSuccessorParent = node->right;
+        while (candidateSuccessorParent->left->left != nullptr)
+        {
+            candidateSuccessorParent = candidateSuccessorParent->left;
+        }
+        return candidateSuccessorParent;
+    }
+
+    void bstRemoveWithTwoChildren(Node<T> *parent, Node<T> *node)
+    {
+        // find in order successor and its parent
+        Node<T> *inOrderSuccessorParent = findInOrderSuccessorParent(node);
+        Node<T> *inOrderSuccessor;
+        Node<T> *newParent;
+        if (inOrderSuccessorParent == node)
+        {
+            inOrderSuccessor = node->right;
+            newParent = inOrderSuccessor;
+        }
+        else
+        {
+            inOrderSuccessor = inOrderSuccessorParent->left;
+            newParent = inOrderSuccessorParent;
+        }
+        std::string printParent = "rootNode";
+        if (parent != nullptr)
+        {
+            printParent = std::to_string(parent->value);
+        }
+
+        Node<T> *temp = new Node<int>(-1);
+        // switch with in order successor
+
+        // save inOrderSuccessor children
+        temp->left = inOrderSuccessor->left;
+        temp->right = inOrderSuccessor->right;
+        // reassign inOrderSuccessor as rootNode or child of parent
+        inOrderSuccessor->left = node->left;
+        inOrderSuccessor->right = node->right;
+        if (node == rootNode)
+        {
+            rootNode = inOrderSuccessor;
+        }
+        else if (parent->left == node)
+        {
+            parent->left = inOrderSuccessor;
+        }
+        else
+        {
+            parent->right = inOrderSuccessor;
+        }
+        // reassign node as a child of inOrderSuccessorParent
+        node->left = temp->left;
+        node->right = temp->right;
+        if (inOrderSuccessorParent != node)
+        {
+            if (inOrderSuccessorParent->left == inOrderSuccessor)
+            {
+                inOrderSuccessorParent->left = node;
+            }
+            else
+            {
+                inOrderSuccessorParent->right = node;
+            }
+        }
+
+        delete temp;
+
+        // call bstRemove again on node
+        bstRemove(newParent, node);
+    }
+
+    void bstRemoveWithOneChild(Node<T> *parent, Node<T> *node)
+    {
+        if (node == rootNode)
+        {
+            if (node->left != nullptr)
+            {
+                rootNode = node->left;
+            }
+            else
+            {
+                rootNode = node->right;
+            }
+        }
+        else if (parent->left == node)
+        {
+            if (node->left != nullptr)
+            {
+                parent->left = node->left;
+            }
+            else
+            {
+                parent->left = node->right;
+            }
+        }
+        else
+        {
+            if (node->left != nullptr)
+            {
+                parent->right = node->left;
+            }
+            else
+            {
+                parent->right = node->right;
+            }
+        }
+        node->left = nullptr;
+        node->right = nullptr;
+    }
+
+    void bstRemove(Node<T> *parent, Node<T> *node)
+    {
+        // case 1: no children
+        if (node->left == nullptr && node->right == nullptr)
+        {
+            if (node == rootNode)
+            {
+                rootNode = nullptr;
+            }
+            else if (parent->left == node)
+            {
+                parent->left = nullptr;
+            }
+            else
+            {
+                parent->right = nullptr;
+            }
+        }
+        // case 2: 2 children
+        else if (node->left != nullptr && node->right != nullptr)
+        {
+            bstRemoveWithTwoChildren(parent, node);
+            // return without deleting since the node will be deleted in a recursive call
+            return;
+        }
+        // case 3: 1 child
+        else
+        {
+            bstRemoveWithOneChild(parent, node);
+        }
+        delete node;
+    }
+
     void rotateLeft(Node<T> *left, Node<T> *parent, Node<T> *right)
     {
         Node<T> *newLeft;
@@ -63,6 +220,7 @@ public:
     ~AVL()
     {
         // implement the destructor here
+        clear();
     }
 
     Node<T> *getRootNode() const
@@ -103,6 +261,11 @@ public:
     {
         // implement remove here
         // return true if item was removed, false if item wasn't in the tree
+        if (rootNode->value == item)
+        {
+            bstRemove(nullptr, rootNode);
+            return true;
+        }
         return false;
     }
 
@@ -118,7 +281,11 @@ public:
         // implement clear here
         // remove all nodes from the tree
 
-        // just remove the root node over and over?
+        // just remove the root node over and over
+        while (rootNode != nullptr)
+        {
+            bstRemove(nullptr, rootNode);
+        }
     }
 
     int size() const

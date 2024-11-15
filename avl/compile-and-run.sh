@@ -1,5 +1,7 @@
 #!/bin/bash
 
-if g++ -Wall -Werror -g -std=c++14 *.cpp -o avl.out ;
-then ./avl.out
+if pmccabe -v *.h *.cpp
+then if g++ -Wall -Werror -g -std=c++14 *.cpp -o avl.out
+    then valgrind --leak-check=full ./avl.out
+    fi
 fi
