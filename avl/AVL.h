@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include "Node.h"
@@ -14,22 +15,112 @@ class AVL
 private:
     Node<T> *rootNode = nullptr;
 
-    // returns nullptr if value is in tree
-    Node<T> *bstInsert(Node<T> *node, T item, int height = 1)
+    int getBalanceFactor(Node<T> *node)
     {
-        int newHeight = height + 1;
+        int leftHeight = node->left ? node->left->height : -1;
+        int rightHeight = node->right ? node->right->height : -1;
+        return leftHeight - rightHeight;
+    }
+
+    void rotateLeft(Node<T> *node, Node<T> *parent)
+    {
+        Node<T> *nodeRightLeft = node->right->left;
+        if (parent == nullptr)
+        {
+            rootNode = node->right;
+        }
+        else
+        {
+            cout << "rotateLeft with node " << node->value << " and parent " << parent->value << endl;
+            parent->right = node->right;
+        }
+        node->right->left = node;
+        node->right = nodeRightLeft;
+    }
+
+    void rotateRight(Node<T> *node, Node<T> *parent)
+    {
+        Node<T> *nodeLeftRight = node->left->right;
+        if (parent == nullptr)
+        {
+            rootNode = node->left;
+        }
+        else
+        {
+            cout << "rotateRight with node " << node->value << " and parent " << parent->value << endl;
+            parent->left = node->left;
+        }
+        node->left->right = node;
+        node->left = nodeLeftRight;
+    }
+
+    void rotateIfNeeded(Node<T> *node, Node<T> *parent)
+    {
+        int nodeBalanceFactor = getBalanceFactor(node);
+        // balance difference greater than 1
+        if (nodeBalanceFactor > 1)
+        {
+            int leftChildBalanceFactor = getBalanceFactor(node->left);
+            // left child of the left subtree (single rotation)
+            if (leftChildBalanceFactor > 0)
+            {
+                rotateRight(node, parent);
+            }
+            // left child of the right subtree (double rotation)
+            else
+            {
+                // rotateRight(node, parent);
+            }
+        }
+        // balance difference less than -1
+        if (nodeBalanceFactor < -1)
+        {
+            int rightChildBalanceFactor = getBalanceFactor(node->right);
+            // right child of the right subtree (single rotation)
+            if (rightChildBalanceFactor < 0)
+            {
+                rotateLeft(node, parent);
+            }
+            // right child of the left subtree (double rotation)
+            else
+            {
+                // rotateLeft(node, parent);
+            }
+        }
+    }
+
+    void checkPerformRotations(Node<T> *node)
+    {
+        if (node == rootNode)
+        {
+            rotateIfNeeded(node, nullptr);
+        }
+        if (node->left != nullptr)
+        {
+            rotateIfNeeded(node->left, node);
+        }
+        if (node->right != nullptr)
+        {
+            rotateIfNeeded(node->right, node);
+        }
+    }
+
+    // returns nullptr if value is in tree
+    Node<T> *bstInsert(Node<T> *node, T item)
+    {
+        Node<T> *insertedNode;
         // bigger/left
         if (item < node->value)
         {
             if (node->left == nullptr)
             {
                 node->left = new Node<T>(item);
-                node->left->height = newHeight;
-                return node->left;
+                node->left->height = 0;
+                insertedNode = node->left;
             }
             else
             {
-                return bstInsert(node->left, item, newHeight);
+                insertedNode = bstInsert(node->left, item);
             }
         }
         // smaller/right
@@ -38,16 +129,45 @@ private:
             if (node->right == nullptr)
             {
                 node->right = new Node<T>(item);
-                node->right->height = newHeight;
-                return node->right;
+                node->right->height = 0;
+                insertedNode = node->right;
             }
             else
             {
-                return bstInsert(node->right, item, newHeight);
+                insertedNode = bstInsert(node->right, item);
             }
         }
-        // assume found otherwise
-        return nullptr;
+        else
+        {
+            // assume found otherwise
+            return nullptr;
+        }
+        // store new height - one more than the maximum of the children
+        node->height = std::max(node->left ? node->left->height : 0, node->right ? node->right->height : 0) + 1;
+        checkPerformRotations(node);
+        return insertedNode;
+    }
+
+    Node<T> *findNodeParent(Node<T> *node, T item)
+    {
+        if (node == nullptr)
+        {
+            return nullptr;
+        }
+        Node<T> *leftChild = node->left;
+        Node<T> *rightChild = node->right;
+        if ((leftChild != nullptr && leftChild->value == item) || (rightChild != nullptr && rightChild->value == item))
+        {
+            return node;
+        }
+        else if (item > node->value)
+        {
+            return findNodeParent(node->right, item);
+        }
+        else
+        {
+            return findNodeParent(node->left, item);
+        }
     }
 
     Node<T> *findInOrderSuccessorParent(Node<T> *node)
@@ -112,6 +232,7 @@ private:
         // reassign node as a child of inOrderSuccessorParent
         node->left = temp->left;
         node->right = temp->right;
+        // only add this connection if it's not the same element otherwise it will create a circular reference
         if (inOrderSuccessorParent != node)
         {
             if (inOrderSuccessorParent->left == inOrderSuccessor)
@@ -261,10 +382,28 @@ public:
     {
         // implement remove here
         // return true if item was removed, false if item wasn't in the tree
+        if (rootNode == nullptr)
+        {
+            return false;
+        }
         if (rootNode->value == item)
         {
             bstRemove(nullptr, rootNode);
             return true;
+        }
+        else
+        {
+            Node<T> *parent = findNodeParent(rootNode, item);
+            if (parent->left != nullptr && parent->left->value == item)
+            {
+                bstRemove(parent, parent->left);
+                return true;
+            }
+            else if (parent->right != nullptr && parent->right->value == item)
+            {
+                bstRemove(parent, parent->right);
+                return true;
+            }
         }
         return false;
     }
