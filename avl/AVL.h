@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "Node.h"
+#include "BSTtoString.h"
 
 using std::cout;
 using std::endl;
@@ -17,46 +18,72 @@ private:
 
     int getBalanceFactor(Node<T> *node)
     {
-        int leftHeight = node->left ? node->left->height : -1;
-        int rightHeight = node->right ? node->right->height : -1;
+        int leftHeight = node->left ? node->left->height : (leafNodeHeight - 1);
+        int rightHeight = node->right ? node->right->height : (leafNodeHeight - 1);
+        // cout << "getBalanceFactor for " << node->value << " leftHeight " << leftHeight << " rightHeight " << rightHeight << endl;
         return leftHeight - rightHeight;
     }
 
     void rotateLeft(Node<T> *node, Node<T> *parent)
     {
+        // cout << "rotateLeft node " << node->value << endl;
         Node<T> *nodeRightLeft = node->right->left;
         if (parent == nullptr)
         {
+            // cout << "rotateLeft parent is rootNode " << endl;
             rootNode = node->right;
         }
         else
         {
-            cout << "rotateLeft with node " << node->value << " and parent " << parent->value << endl;
-            parent->right = node->right;
+            // cout << "rotateLeft parent " << parent->value << endl;
+            if (parent->left == node)
+            {
+                parent->left = node->right;
+            }
+            else
+            {
+                parent->right = node->right;
+            }
         }
         node->right->left = node;
         node->right = nodeRightLeft;
+        node->height -= 2;
+        // cout << BSTtoString(rootNode, true);
     }
 
     void rotateRight(Node<T> *node, Node<T> *parent)
     {
+        // cout << "rotateRight node " << node->value << endl;
         Node<T> *nodeLeftRight = node->left->right;
         if (parent == nullptr)
         {
+            // cout << "rotateRight parent is rootNode " << endl;
             rootNode = node->left;
         }
         else
         {
-            cout << "rotateRight with node " << node->value << " and parent " << parent->value << endl;
-            parent->left = node->left;
+            // cout << "rotateRight parent " << parent->value << endl;
+            if (parent->left == node)
+            {
+                parent->left = node->left;
+            }
+            else
+            {
+                parent->right = node->left;
+            }
         }
         node->left->right = node;
         node->left = nodeLeftRight;
+        node->height -= 2;
+        // cout << BSTtoString(rootNode, true);
     }
 
-    void rotateIfNeeded(Node<T> *node, Node<T> *parent)
+    // returns true if a rotation took place
+    bool rotateIfNeeded(Node<T> *node, Node<T> *parent)
     {
         int nodeBalanceFactor = getBalanceFactor(node);
+        // cout << "rotateIfNeeded " << node->value << "(" << node->height << ") with balanceFactor " << nodeBalanceFactor << endl;
+        // cout << BSTtoString(rootNode, true) << endl;
         // balance difference greater than 1
         if (nodeBalanceFactor > 1)
         {
@@ -64,44 +91,70 @@ private:
             // left child of the left subtree (single rotation)
             if (leftChildBalanceFactor > 0)
             {
+                // cout << "left child of the left subtree (single rotation)" << endl;
                 rotateRight(node, parent);
             }
             // left child of the right subtree (double rotation)
             else
             {
-                // rotateRight(node, parent);
+                // cout << "left child of the right subtree (double rotation)" << endl;
+                rotateLeft(node->right, node);
+                rotateRight(node, parent);
             }
+            return true;
         }
         // balance difference less than -1
-        if (nodeBalanceFactor < -1)
+        else if (nodeBalanceFactor < -1)
         {
             int rightChildBalanceFactor = getBalanceFactor(node->right);
             // right child of the right subtree (single rotation)
             if (rightChildBalanceFactor < 0)
             {
+                // cout << "right child of the right subtree (single rotation)" << endl;
                 rotateLeft(node, parent);
             }
             // right child of the left subtree (double rotation)
             else
             {
-                // rotateLeft(node, parent);
+                // cout << "right child of the left subtree (double rotation)" << endl;
+                rotateRight(node->left, node);
+                rotateLeft(node, parent);
             }
+            return true;
         }
+        return false;
     }
 
     void checkPerformRotations(Node<T> *node)
     {
-        if (node == rootNode)
-        {
-            rotateIfNeeded(node, nullptr);
-        }
+        // cout << "checkPerformRotations " << node->value << endl;
+        bool didRotate = false;
         if (node->left != nullptr)
         {
-            rotateIfNeeded(node->left, node);
+            didRotate = didRotate || rotateIfNeeded(node->left, node);
+            // cout << "node->left rotation " << didRotate << endl;
+            if (didRotate)
+            {
+                return;
+            }
         }
         if (node->right != nullptr)
         {
-            rotateIfNeeded(node->right, node);
+            didRotate = didRotate || rotateIfNeeded(node->right, node);
+            // cout << "node->right rotation " << didRotate << endl;
+            if (didRotate)
+            {
+                return;
+            }
+        }
+        if (node == rootNode)
+        {
+            didRotate = didRotate || rotateIfNeeded(node, nullptr);
+            // cout << "rootNode rotation " << didRotate << endl;
+            if (didRotate)
+            {
+                return;
+            }
         }
     }
 
@@ -115,7 +168,7 @@ private:
             if (node->left == nullptr)
             {
                 node->left = new Node<T>(item);
-                node->left->height = 0;
+                node->left->height = leafNodeHeight;
                 insertedNode = node->left;
             }
             else
@@ -129,7 +182,7 @@ private:
             if (node->right == nullptr)
             {
                 node->right = new Node<T>(item);
-                node->right->height = 0;
+                node->right->height = leafNodeHeight;
                 insertedNode = node->right;
             }
             else
@@ -143,8 +196,12 @@ private:
             return nullptr;
         }
         // store new height - one more than the maximum of the children
-        node->height = std::max(node->left ? node->left->height : 0, node->right ? node->right->height : 0) + 1;
-        checkPerformRotations(node);
+        // cout << "child heights for " << node->value << " are " << (node->left ? node->left->height : (leafNodeHeight - 1)) << ", " << (node->right ? node->right->height : (leafNodeHeight - 1)) << endl;
+        if (insertedNode != nullptr)
+        {
+            checkPerformRotations(node);
+        }
+        node->height = std::max(node->left ? node->left->height : (leafNodeHeight - 1), node->right ? node->right->height : (leafNodeHeight - 1)) + 1;
         return insertedNode;
     }
 
@@ -323,15 +380,6 @@ private:
         delete node;
     }
 
-    void rotateLeft(Node<T> *left, Node<T> *parent, Node<T> *right)
-    {
-        Node<T> *newLeft;
-    }
-
-    void rotateRight()
-    {
-    }
-
 public:
     AVL()
     {
@@ -353,6 +401,8 @@ public:
 
     bool insert(T item)
     {
+        // cout << BSTtoString(rootNode, true) << endl;
+        // cout << "insert " << item << endl;
         // implement insert here
         // return true if item was inserted, false if item was already in the tree
 

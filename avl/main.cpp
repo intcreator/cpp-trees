@@ -2,9 +2,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <queue>
 #include "AVL.h"
 #include "Node.h"
+#include "BSTtoString.h"
 
 using std::cout;
 using std::endl;
@@ -33,14 +33,14 @@ int main()
 	std::string temp;		 // used to store the current instruction
 	AVL<int> *avlptr = NULL; // the AVL
 
-	for (int i = 0; i < NUM_FILES; i++)
+	for (int i = 1; i < NUM_FILES; i++)
 	{
 		std::ostringstream fileNameStream;
 		fileNameStream << "file" << i << ".txt";
 		fileArray[i] = fileNameStream.str();
 	}
 
-	for (int i = 0; i < NUM_FILES; i++)
+	for (int i = 1; i < NUM_FILES; i++)
 	{
 		ifs.open("in_" + fileArray[i]);	 // open the file to read from
 		ofs.open("out_" + fileArray[i]); // open the file to write to
@@ -121,53 +121,13 @@ void parse_instruction(std::string temp, std::ofstream &ofs, AVL<int> *aptr)
 	else if (command == "PrintBST")
 	{ // you don't need to implement any function for this command
 		ofs << temp << "\n"
-			<< BSTtoString(aptr) << std::endl;
+			<< BSTtoString(aptr->getRootNode()) << std::endl;
 	}
 	else
 	{ // invalid command, wrong input file format
 		std::cout << "Command: \"" << command << "\"" << std::endl;
 		std::cout << "Invalid command.  Do you have the correct input file?" << std::endl;
 	}
-}
-
-// a function that takes a BST and returns a level-order string representation of the BST
-// returns a string representation of the nodes in level order
-std::string BSTtoString(AVL<int> *bst)
-{
-	std::queue<Node<int> *> readQ;	 // used to read in the levels of the tree, contains Node*
-	std::stringstream nodeReader_ss; // used to store the values of the nodes and the level-order sequence
-	int depth = 0;					 // the depth of a node on the tree
-
-	if (bst->getRootNode() == NULL)
-	{
-		return "BST is empty\n";
-	}
-
-	readQ.push(bst->getRootNode()); // push the root node of the tree into the queue
-
-	while (!readQ.empty())
-	{						  // as long as the queue has a remaining node:
-		int i = readQ.size(); // store the number of nodes on this level of the tree
-		nodeReader_ss << depth << ":  ";
-		for (; i > 0; i--)
-		{											 // for each node on this level,
-			Node<int> *nextNode = readQ.front();	 // store the next node in the queue
-			nodeReader_ss << nextNode->value << " "; // store the data from the node into the ss
-			if (nextNode->left != NULL)
-			{ // if there is a left child, push the left child into the queue
-				readQ.push(nextNode->left);
-			}
-			if (nextNode->right != NULL)
-			{ // if there is a right child, push the left child into the queue
-				readQ.push(nextNode->right);
-			}
-			readQ.pop(); // pop the node off of the queue, leaving its children in the queue
-		}
-		nodeReader_ss << "\n"; // push an endl into the ss to distinguish levels
-		depth++;
-	}
-
-	return nodeReader_ss.str();
 }
 
 // Version of getline which does not preserve end of line characters
