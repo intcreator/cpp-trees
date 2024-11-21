@@ -444,6 +444,10 @@ public:
         else
         {
             Node<T> *parent = findNodeParent(rootNode, item);
+            if (parent == nullptr)
+            {
+                return false;
+            }
             if (parent->left != nullptr && parent->left->value == item)
             {
                 bstRemove(parent, parent->left);

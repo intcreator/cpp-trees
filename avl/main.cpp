@@ -9,7 +9,7 @@
 using std::cout;
 using std::endl;
 
-const int NUM_FILES = 2; // the total number of files to be read from
+const int NUM_FILES = 3; // the total number of files to be read from
 
 // the string array containing the file names
 std::string fileArray[NUM_FILES];
