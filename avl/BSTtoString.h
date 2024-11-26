@@ -34,10 +34,20 @@ std::string BSTtoString(Node<int> *rootNode, bool showHeight = false)
             nodeReader_ss << nextNode->value << height.str() << " "; // store the data from the node into the ss
             if (nextNode->left != NULL)
             { // if there is a left child, push the left child into the queue
+                if (nextNode->left == nextNode)
+                {
+                    nodeReader_ss << "\nCIRCULAR DEPENDENCY DETECTED " << nextNode->value << " == " << nextNode->left->value << std::endl;
+                    return nodeReader_ss.str();
+                }
                 readQ.push(nextNode->left);
             }
             if (nextNode->right != NULL)
             { // if there is a right child, push the left child into the queue
+                if (nextNode->right == nextNode)
+                {
+                    nodeReader_ss << "\nCIRCULAR DEPENDENCY DETECTED " << nextNode->value << " == " << nextNode->right->value << std::endl;
+                    return nodeReader_ss.str();
+                }
                 readQ.push(nextNode->right);
             }
             readQ.pop(); // pop the node off of the queue, leaving its children in the queue

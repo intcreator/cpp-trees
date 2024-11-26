@@ -16,6 +16,11 @@ class AVL
 private:
     Node<T> *rootNode = nullptr;
 
+    int getHeight(Node<T> *node)
+    {
+        return std::max(node->left ? node->left->height : (leafNodeHeight - 1), node->right ? node->right->height : (leafNodeHeight - 1)) + 1;
+    }
+
     int getBalanceFactor(Node<T> *node)
     {
         int leftHeight = node->left ? node->left->height : (leafNodeHeight - 1);
@@ -47,7 +52,6 @@ private:
         }
         node->right->left = node;
         node->right = nodeRightLeft;
-        node->height -= 2;
         // cout << BSTtoString(rootNode, true);
     }
 
@@ -74,7 +78,6 @@ private:
         }
         node->left->right = node;
         node->left = nodeLeftRight;
-        node->height -= 2;
         // cout << BSTtoString(rootNode, true);
     }
 
@@ -88,8 +91,9 @@ private:
         if (nodeBalanceFactor > 1)
         {
             int leftChildBalanceFactor = getBalanceFactor(node->left);
+            // cout << "leftChildBalanceFactor " << leftChildBalanceFactor << endl;
             // left child of the left subtree (single rotation)
-            if (leftChildBalanceFactor > 0)
+            if (leftChildBalanceFactor >= 0)
             {
                 // cout << "left child of the left subtree (single rotation)" << endl;
                 rotateRight(node, parent);
@@ -107,8 +111,9 @@ private:
         else if (nodeBalanceFactor < -1)
         {
             int rightChildBalanceFactor = getBalanceFactor(node->right);
+            // cout << "rightChildBalanceFactor " << rightChildBalanceFactor << endl;
             // right child of the right subtree (single rotation)
-            if (rightChildBalanceFactor < 0)
+            if (rightChildBalanceFactor <= 0)
             {
                 // cout << "right child of the right subtree (single rotation)" << endl;
                 rotateLeft(node, parent);
@@ -127,35 +132,34 @@ private:
 
     void checkPerformRotations(Node<T> *node)
     {
-        // cout << "checkPerformRotations " << node->value << endl;
+        if (node == nullptr)
+        {
+            return;
+        }
+
+        // cout << BSTtoString(rootNode, true);
+        // cout << "checkPerformRotations " << node->value << "(" << node->height << ")" << endl;
         bool didRotate = false;
         if (node->left != nullptr)
         {
+            node->left->height = getHeight(node->left);
             didRotate = didRotate || rotateIfNeeded(node->left, node);
             // cout << "node->left rotation " << didRotate << endl;
-            if (didRotate)
-            {
-                return;
-            }
         }
         if (node->right != nullptr)
         {
+            node->right->height = getHeight(node->right);
             didRotate = didRotate || rotateIfNeeded(node->right, node);
             // cout << "node->right rotation " << didRotate << endl;
-            if (didRotate)
-            {
-                return;
-            }
         }
         if (node == rootNode)
         {
+            node->height = getHeight(node);
             didRotate = didRotate || rotateIfNeeded(node, nullptr);
             // cout << "rootNode rotation " << didRotate << endl;
-            if (didRotate)
-            {
-                return;
-            }
         }
+        // cout << "no rotations performed\n";
+        checkPerformRotations(findNodeParent(rootNode, node->value));
     }
 
     // returns nullptr if value is in tree
@@ -201,13 +205,16 @@ private:
         {
             checkPerformRotations(node);
         }
-        node->height = std::max(node->left ? node->left->height : (leafNodeHeight - 1), node->right ? node->right->height : (leafNodeHeight - 1)) + 1;
+        node->height = getHeight(node);
         return insertedNode;
     }
 
     Node<T> *findNodeParent(Node<T> *node, T item)
     {
-        if (node == nullptr)
+        // return null if the item is located at this level
+        // we should only reach this if we're searching for the parent of the root
+        // cout << "findNodeParent of " << item << endl;
+        if (node == nullptr || node->value == item)
         {
             return nullptr;
         }
@@ -243,73 +250,104 @@ private:
         return candidateSuccessorParent;
     }
 
-    void bstRemoveWithTwoChildren(Node<T> *parent, Node<T> *node)
+    Node<T> *findInOrderPredecessorParent(Node<T> *node)
     {
-        // find in order successor and its parent
-        Node<T> *inOrderSuccessorParent = findInOrderSuccessorParent(node);
-        Node<T> *inOrderSuccessor;
-        Node<T> *newParent;
-        if (inOrderSuccessorParent == node)
+        // if left child is empty, left child is in order predecessor and node is parent
+        if (node->left->right == nullptr)
         {
-            inOrderSuccessor = node->right;
-            newParent = inOrderSuccessor;
+            return node;
+        }
+        // otherwise search
+        Node<T> *candidateSuccessorParent = node->left;
+        while (candidateSuccessorParent->right->right != nullptr)
+        {
+            candidateSuccessorParent = candidateSuccessorParent->right;
+        }
+        return candidateSuccessorParent;
+    }
+
+    // returns the new parent of the removed node
+    Node<T> *bstRemoveWithTwoChildren(Node<T> *parent, Node<T> *node)
+    {
+        // find in order predecessor and its parent
+        Node<T> *switchingNodeParent = findInOrderPredecessorParent(node);
+        Node<T> *switchingNode;
+
+        // the new parent of the node to be removed (passed recursively)
+        // Node<T> *newParent;
+        if (switchingNodeParent == node)
+        {
+            switchingNode = switchingNodeParent->left;
         }
         else
         {
-            inOrderSuccessor = inOrderSuccessorParent->left;
-            newParent = inOrderSuccessorParent;
+            switchingNode = switchingNodeParent->right;
         }
-        std::string printParent = "rootNode";
-        if (parent != nullptr)
-        {
-            printParent = std::to_string(parent->value);
-        }
+        // cout << "switchingNode " << switchingNode->value << " switchingNodeParent " << switchingNodeParent->value << endl;
+        // std::string printParent = "rootNode";
+        // if (parent != nullptr)
+        // {
+        //     printParent = std::to_string(parent->value);
+        // }
+        // cout << "parent is " << printParent << endl;
 
         Node<T> *temp = new Node<int>(-1);
         // switch with in order successor
 
-        // save inOrderSuccessor children
-        temp->left = inOrderSuccessor->left;
-        temp->right = inOrderSuccessor->right;
-        // reassign inOrderSuccessor as rootNode or child of parent
-        inOrderSuccessor->left = node->left;
-        inOrderSuccessor->right = node->right;
+        // save switchingNode children
+        temp->left = switchingNode->left;
+        temp->right = switchingNode->right;
+        // reassign switchingNode as rootNode or child of parent
+        // don't point to itself
+        if (switchingNode != node->left)
+        {
+            switchingNode->left = node->left;
+        }
+        if (switchingNode != node->right)
+        {
+            switchingNode->right = node->right;
+        }
         if (node == rootNode)
         {
-            rootNode = inOrderSuccessor;
+            rootNode = switchingNode;
         }
         else if (parent->left == node)
         {
-            parent->left = inOrderSuccessor;
+            parent->left = switchingNode;
         }
         else
         {
-            parent->right = inOrderSuccessor;
+            parent->right = switchingNode;
         }
-        // reassign node as a child of inOrderSuccessorParent
+        // reassign node as a child of switchingNodeParent
         node->left = temp->left;
         node->right = temp->right;
         // only add this connection if it's not the same element otherwise it will create a circular reference
-        if (inOrderSuccessorParent != node)
+        if (switchingNodeParent != node)
         {
-            if (inOrderSuccessorParent->left == inOrderSuccessor)
+            if (switchingNodeParent->left == switchingNode)
             {
-                inOrderSuccessorParent->left = node;
+                switchingNodeParent->left = node;
             }
             else
             {
-                inOrderSuccessorParent->right = node;
+                switchingNodeParent->right = node;
             }
         }
 
         delete temp;
 
-        // call bstRemove again on node
-        bstRemove(newParent, node);
+        // cout << BSTtoString(rootNode, true);
+
+        // call bstRemove again on node which will recur this function or
+        // call a different function once it has fewer than two children
+        return bstRemove(switchingNodeParent, node);
     }
 
-    void bstRemoveWithOneChild(Node<T> *parent, Node<T> *node)
+    // returns the new parent of the removed node
+    Node<T> *bstRemoveWithOneChild(Node<T> *parent, Node<T> *node)
     {
+        Node<T> *newParent;
         if (node == rootNode)
         {
             if (node->left != nullptr)
@@ -320,6 +358,7 @@ private:
             {
                 rootNode = node->right;
             }
+            newParent = nullptr;
         }
         else if (parent->left == node)
         {
@@ -331,6 +370,7 @@ private:
             {
                 parent->left = node->right;
             }
+            newParent = parent->left;
         }
         else
         {
@@ -342,42 +382,58 @@ private:
             {
                 parent->right = node->right;
             }
+            newParent = parent->right;
         }
         node->left = nullptr;
         node->right = nullptr;
+        return newParent;
     }
 
-    void bstRemove(Node<T> *parent, Node<T> *node)
+    // returns the new parent of the removed node
+    // since no switching is done, return parent
+    Node<T> *bstRemoveWithNoChildren(Node<T> *parent, Node<T> *node)
     {
+        if (node == rootNode)
+        {
+            rootNode = nullptr;
+        }
+        else if (parent->left == node)
+        {
+            parent->left = nullptr;
+        }
+        else
+        {
+            parent->right = nullptr;
+        }
+        return parent;
+    }
+
+    Node<T> *bstRemove(Node<T> *parent, Node<T> *node)
+    {
+        // cout << "bstRemove " << node->value << endl;
+        Node<T> *removedNodeNewParent;
         // case 1: no children
         if (node->left == nullptr && node->right == nullptr)
         {
-            if (node == rootNode)
-            {
-                rootNode = nullptr;
-            }
-            else if (parent->left == node)
-            {
-                parent->left = nullptr;
-            }
-            else
-            {
-                parent->right = nullptr;
-            }
+            removedNodeNewParent = bstRemoveWithNoChildren(parent, node);
+            checkPerformRotations(removedNodeNewParent);
         }
         // case 2: 2 children
         else if (node->left != nullptr && node->right != nullptr)
         {
-            bstRemoveWithTwoChildren(parent, node);
+            removedNodeNewParent = bstRemoveWithTwoChildren(parent, node);
             // return without deleting since the node will be deleted in a recursive call
-            return;
+            return removedNodeNewParent;
         }
         // case 3: 1 child
         else
         {
-            bstRemoveWithOneChild(parent, node);
+            removedNodeNewParent = bstRemoveWithOneChild(parent, node);
+            checkPerformRotations(removedNodeNewParent);
         }
         delete node;
+        // cout << BSTtoString(rootNode, true);
+        return removedNodeNewParent;
     }
 
 public:

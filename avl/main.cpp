@@ -76,7 +76,7 @@ int main()
 
 // a function that takes an AVL and returns a level-order string representation of the AVL
 // returns a string representation of the nodes in level order
-std::string BSTtoString(AVL<int> *bst);
+// std::string BSTtoString(AVL<int> *bst);
 
 void parse_instruction(std::string temp, std::ofstream &ofs, AVL<int> *aptr)
 {
